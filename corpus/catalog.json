@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "note": "照合に使う文書の一覧。題名と取得先は、公開元の掲載ページで確認した日付（checked_on）の情報。版の名称（version）は、取り込んだ文書を人が確認して記入する。取り込んだ本文はリポジトリに入れず、corpus/data/ に取得日とSHA-256とともに保存する。",
+  "sources": [
+    {
+      "id": "mhlw-security",
+      "title": "医療情報システムの安全管理に関するガイドライン",
+      "publisher": "厚生労働省",
+      "kind": "domestic_guideline",
+      "page_url": "https://www.mhlw.go.jp/stf/shingi/0000516275_00006.html",
+      "license_note": "公開文書。利用条件は公開元のサイトの利用規約による。",
+      "documents": [
+        {"id": "mhlw-security-overview", "listed_title": "医療情報システムの安全管理に関するガイドライン 第7.0版（概説編）（令和8年6月）", "url": "https://www.mhlw.go.jp/content/10808000/001716290.pdf", "checked_on": "2026-11-05", "version": null},
+        {"id": "mhlw-security-management", "listed_title": "医療情報システムの安全管理に関するガイドライン 第7.0版（経営管理編）（令和8年6月）", "url": "https://www.mhlw.go.jp/content/10808000/001716291.pdf", "checked_on": "2026-11-05", "version": null},
+        {"id": "mhlw-security-planning", "listed_title": "医療情報システムの安全管理に関するガイドライン 第7.0版（企画管理編）（令和8年5月）", "url": "https://www.mhlw.go.jp/content/10808000/001716292.pdf", "checked_on": "2026-11-05", "version": null},
+        {"id": "mhlw-security-operation", "listed_title": "医療情報システムの安全管理に関するガイドライン 第7.0版（システム運用編）（令和8年6月）", "url": "https://www.mhlw.go.jp/content/10808000/001716295.pdf", "checked_on": "2026-11-05", "version": null},
+        {"id": "mhlw-security-qa", "listed_title": "医療情報システムの安全管理に関するガイドラインQ&A（令和8年9月）", "url": "https://www.mhlw.go.jp/content/10808000/001752355.pdf", "checked_on": "2026-11-05", "version": null}
+      ]
+    },
+    {
+      "id": "provider-security",
+      "title": "医療情報を取り扱う情報システム・サービスの提供事業者における安全管理ガイドライン",
+      "publisher": "総務省・経済産業省",
+      "kind": "domestic_guideline",
+      "page_url": "https://www.soumu.go.jp/menu_news/s-news/01ryutsu06_02000427.html",
+      "license_note": "公開文書。利用条件は公開元のサイトの利用規約による。",
+      "documents": [
+        {"id": "provider-security-main", "listed_title": "第2.0版 本文（総務省の報道発表（2025年3月28日）からリンクされた経済産業省のPDF）", "url": "https://www.meti.go.jp/policy/mono_info_service/healthcare/01gl_20250328.pdf", "checked_on": "2026-11-05", "version": null, "fetch_note": "2026-11-05時点、この開発環境からは経済産業省のサイトがHTTP 403で取得できない。運営者が取得したファイルを ingest --file で取り込む。"}
+      ]
+    },
+    {
+      "id": "ppc-medical-guidance",
+      "title": "医療・介護関係事業者における個人情報の適切な取扱いのためのガイダンス",
+      "publisher": "個人情報保護委員会・厚生労働省",
+      "kind": "domestic_guideline",
+      "page_url": "https://www.ppc.go.jp/personalinfo/legal/iryoukaigo_guidance/",
+      "license_note": "公開文書。利用条件は公開元のサイトの利用規約による。",
+      "documents": [
+        {"id": "ppc-medical-guidance-main", "listed_title": "ガイダンス PDF版（掲載ページに令和8年4月の新旧対照表あり）", "url": "https://www.ppc.go.jp/files/pdf/260401_iryoukaigo_guidance.pdf", "checked_on": "2026-11-05", "version": null}
+      ]
+    },
+    {
+      "id": "mhlw-samd",
+      "title": "プログラムの医療機器該当性に関するガイドライン",
+      "publisher": "厚生労働省",
+      "kind": "medical_device_regulation",
+      "page_url": null,
+      "license_note": "公開文書。利用条件は公開元のサイトの利用規約による。",
+      "documents": [
+        {"id": "mhlw-samd-main", "listed_title": "（掲載ページの題名は未確認。検索結果からのURL。取り込み後に表題を人が確認する）", "url": "https://www.mhlw.go.jp/content/11120000/001082227.pdf", "checked_on": "2026-11-05", "version": null}
+      ]
+    },
+    {
+      "id": "owasp-asvs",
+      "title": "OWASP Application Security Verification Standard",
+      "publisher": "OWASP Foundation",
+      "kind": "security_standard",
+      "page_url": "https://github.com/OWASP/ASVS",
+      "license_note": "CC BY-SA 4.0（リポジトリの LICENSE.md）。",
+      "documents": [
+        {"id": "owasp-asvs-5", "listed_title": "ASVS 5.0（英語、タグ v5.0.0_release の 5.0/en）", "git": {"repository": "https://github.com/OWASP/ASVS", "ref": "v5.0.0_release", "path": "5.0/en"}, "checked_on": "2026-11-05", "version": null}
+      ]
+    },
+    {
+      "id": "nist-800-53",
+      "title": "NIST SP 800-53 Security and Privacy Controls for Information Systems and Organizations",
+      "publisher": "NIST",
+      "kind": "security_standard",
+      "page_url": "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final",
+      "license_note": "米国政府の著作物。利用条件は公開元による。",
+      "documents": [
+        {"id": "nist-800-53-r5", "listed_title": "NIST SP 800-53 Rev. 5（PDF）", "url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-53r5.pdf", "checked_on": "2026-11-05", "version": null}
+      ]
+    }
+  ]
+}

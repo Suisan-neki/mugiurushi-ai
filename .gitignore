@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+# 取り込んだ文書の本文と断片。公開元から取り込み直す（リポジトリには入れない）。
+/corpus/data/
