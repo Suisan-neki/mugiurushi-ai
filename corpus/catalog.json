@@ -10,11 +10,41 @@
       "page_url": "https://www.mhlw.go.jp/stf/shingi/0000516275_00006.html",
       "license_note": "公開文書。利用条件は公開元のサイトの利用規約による。",
       "documents": [
-        {"id": "mhlw-security-overview", "listed_title": "医療情報システムの安全管理に関するガイドライン 第7.0版（概説編）（令和8年6月）", "url": "https://www.mhlw.go.jp/content/10808000/001716290.pdf", "checked_on": "2026-11-05", "version": null},
-        {"id": "mhlw-security-management", "listed_title": "医療情報システムの安全管理に関するガイドライン 第7.0版（経営管理編）（令和8年6月）", "url": "https://www.mhlw.go.jp/content/10808000/001716291.pdf", "checked_on": "2026-11-05", "version": null},
-        {"id": "mhlw-security-planning", "listed_title": "医療情報システムの安全管理に関するガイドライン 第7.0版（企画管理編）（令和8年5月）", "url": "https://www.mhlw.go.jp/content/10808000/001716292.pdf", "checked_on": "2026-11-05", "version": null},
-        {"id": "mhlw-security-operation", "listed_title": "医療情報システムの安全管理に関するガイドライン 第7.0版（システム運用編）（令和8年6月）", "url": "https://www.mhlw.go.jp/content/10808000/001716295.pdf", "checked_on": "2026-11-05", "version": null},
-        {"id": "mhlw-security-qa", "listed_title": "医療情報システムの安全管理に関するガイドラインQ&A（令和8年9月）", "url": "https://www.mhlw.go.jp/content/10808000/001752355.pdf", "checked_on": "2026-11-05", "version": null}
+        {
+          "id": "mhlw-security-overview",
+          "listed_title": "医療情報システムの安全管理に関するガイドライン 第7.0版（概説編）（令和8年6月）",
+          "url": "https://www.mhlw.go.jp/content/10808000/001716290.pdf",
+          "checked_on": "2026-11-05",
+          "version": null
+        },
+        {
+          "id": "mhlw-security-management",
+          "listed_title": "医療情報システムの安全管理に関するガイドライン 第7.0版（経営管理編）（令和8年6月）",
+          "url": "https://www.mhlw.go.jp/content/10808000/001716291.pdf",
+          "checked_on": "2026-11-05",
+          "version": null
+        },
+        {
+          "id": "mhlw-security-planning",
+          "listed_title": "医療情報システムの安全管理に関するガイドライン 第7.0版（企画管理編）（令和8年5月）",
+          "url": "https://www.mhlw.go.jp/content/10808000/001716292.pdf",
+          "checked_on": "2026-11-05",
+          "version": null
+        },
+        {
+          "id": "mhlw-security-operation",
+          "listed_title": "医療情報システムの安全管理に関するガイドライン 第7.0版（システム運用編）（令和8年6月）",
+          "url": "https://www.mhlw.go.jp/content/10808000/001716295.pdf",
+          "checked_on": "2026-11-05",
+          "version": null
+        },
+        {
+          "id": "mhlw-security-qa",
+          "listed_title": "医療情報システムの安全管理に関するガイドラインQ&A（令和8年9月）",
+          "url": "https://www.mhlw.go.jp/content/10808000/001752355.pdf",
+          "checked_on": "2026-11-05",
+          "version": null
+        }
       ]
     },
     {
@@ -25,7 +55,14 @@
       "page_url": "https://www.soumu.go.jp/menu_news/s-news/01ryutsu06_02000427.html",
       "license_note": "公開文書。利用条件は公開元のサイトの利用規約による。",
       "documents": [
-        {"id": "provider-security-main", "listed_title": "第2.0版 本文（総務省の報道発表（2025年3月28日）からリンクされた経済産業省のPDF）", "url": "https://www.meti.go.jp/policy/mono_info_service/healthcare/01gl_20250328.pdf", "checked_on": "2026-11-05", "version": null, "fetch_note": "2026-11-05時点、この開発環境からは経済産業省のサイトがHTTP 403で取得できない。運営者が取得したファイルを ingest --file で取り込む。"}
+        {
+          "id": "provider-security-main",
+          "listed_title": "第2.0版 本文（総務省の報道発表（2025年3月28日）からリンクされた経済産業省のPDF）",
+          "url": "https://www.meti.go.jp/policy/mono_info_service/healthcare/01gl_20250328.pdf",
+          "checked_on": "2026-11-05",
+          "version": null,
+          "fetch_note": "2026-11-05時点、この開発環境からは経済産業省のサイトがHTTP 403で取得できない。運営者が取得したファイルを ingest --file で取り込む。"
+        }
       ]
     },
     {
@@ -36,7 +73,20 @@
       "page_url": "https://www.ppc.go.jp/personalinfo/legal/iryoukaigo_guidance/",
       "license_note": "公開文書。利用条件は公開元のサイトの利用規約による。",
       "documents": [
-        {"id": "ppc-medical-guidance-main", "listed_title": "ガイダンス PDF版（掲載ページに令和8年4月の新旧対照表あり）", "url": "https://www.ppc.go.jp/files/pdf/260401_iryoukaigo_guidance.pdf", "checked_on": "2026-11-05", "version": null}
+        {
+          "id": "ppc-medical-guidance-main",
+          "listed_title": "ガイダンス PDF版（掲載ページに令和8年4月の新旧対照表あり）",
+          "url": "https://www.ppc.go.jp/files/pdf/260401_iryoukaigo_guidance.pdf",
+          "checked_on": "2026-11-05",
+          "version": null
+        },
+        {
+          "id": "ppc-medical-guidance-qa",
+          "listed_title": "「医療・介護関係事業者における個人情報の適切な取扱いのためのガイダンス」に関するＱ＆A事例集（平成29年５月31日適用、令和８年４月１日改正）（厚生労働省の掲載ページ https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000027272.html より）",
+          "checked_on": "2026-11-06",
+          "version": null,
+          "url": "https://www.mhlw.go.jp/content/001685013.pdf"
+        }
       ]
     },
     {
@@ -47,7 +97,13 @@
       "page_url": null,
       "license_note": "公開文書。利用条件は公開元のサイトの利用規約による。",
       "documents": [
-        {"id": "mhlw-samd-main", "listed_title": "（掲載ページの題名は未確認。検索結果からのURL。取り込み後に表題を人が確認する）", "url": "https://www.mhlw.go.jp/content/11120000/001082227.pdf", "checked_on": "2026-11-05", "version": null}
+        {
+          "id": "mhlw-samd-main",
+          "listed_title": "（掲載ページの題名は未確認。検索結果からのURL。取り込み後に表題を人が確認する）",
+          "url": "https://www.mhlw.go.jp/content/11120000/001082227.pdf",
+          "checked_on": "2026-11-05",
+          "version": null
+        }
       ]
     },
     {
@@ -58,7 +114,17 @@
       "page_url": "https://github.com/OWASP/ASVS",
       "license_note": "CC BY-SA 4.0（リポジトリの LICENSE.md）。",
       "documents": [
-        {"id": "owasp-asvs-5", "listed_title": "ASVS 5.0（英語、タグ v5.0.0_release の 5.0/en）", "git": {"repository": "https://github.com/OWASP/ASVS", "ref": "v5.0.0_release", "path": "5.0/en"}, "checked_on": "2026-11-05", "version": null}
+        {
+          "id": "owasp-asvs-5",
+          "listed_title": "ASVS 5.0（英語、タグ v5.0.0_release の 5.0/en）",
+          "git": {
+            "repository": "https://github.com/OWASP/ASVS",
+            "ref": "v5.0.0_release",
+            "path": "5.0/en"
+          },
+          "checked_on": "2026-11-05",
+          "version": null
+        }
       ]
     },
     {
@@ -69,7 +135,126 @@
       "page_url": "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final",
       "license_note": "米国政府の著作物。利用条件は公開元による。",
       "documents": [
-        {"id": "nist-800-53-r5", "listed_title": "NIST SP 800-53 Rev. 5（PDF）", "url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-53r5.pdf", "checked_on": "2026-11-05", "version": null}
+        {
+          "id": "nist-800-53-r5",
+          "listed_title": "NIST SP 800-53 Rev. 5（PDF）",
+          "url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-53r5.pdf",
+          "checked_on": "2026-11-05",
+          "version": null
+        }
+      ]
+    },
+    {
+      "id": "mhlw-cyber-checklist",
+      "title": "医療機関・薬局におけるサイバーセキュリティ対策チェックリスト",
+      "publisher": "厚生労働省",
+      "kind": "domestic_guideline",
+      "page_url": "https://www.mhlw.go.jp/stf/shingi/0000516275_00006.html",
+      "license_note": "公開文書。利用条件は公開元のサイトの利用規約による。",
+      "documents": [
+        {
+          "id": "mhlw-cyber-checklist-main",
+          "listed_title": "医療機関・薬局におけるサイバーセキュリティ対策チェックリスト（令和８年６月）",
+          "checked_on": "2026-11-06",
+          "version": null,
+          "url": "https://www.mhlw.go.jp/content/10808000/001716185.pdf"
+        },
+        {
+          "id": "mhlw-cyber-checklist-manual",
+          "listed_title": "医療機関・薬局におけるサイバーセキュリティ対策チェックリストマニュアル～医療機関・薬局・事業者向～（令和８年６月）",
+          "checked_on": "2026-11-06",
+          "version": null,
+          "url": "https://www.mhlw.go.jp/content/10808000/001716186.pdf"
+        }
+      ]
+    },
+    {
+      "id": "ppc-general",
+      "title": "個人情報の保護に関する法律についてのガイドライン（通則編）",
+      "publisher": "個人情報保護委員会",
+      "kind": "domestic_guideline",
+      "page_url": "https://www.ppc.go.jp/personalinfo/legal/guidelines_tsusoku/",
+      "license_note": "公開文書。利用条件は公開元のサイトの利用規約による。",
+      "documents": [
+        {
+          "id": "ppc-general-main",
+          "listed_title": "ガイドライン（通則編） PDF版（掲載ページの令和8年6月の新旧対照表と同じ日付のファイル名）",
+          "checked_on": "2026-11-06",
+          "version": null,
+          "url": "https://www.ppc.go.jp/files/pdf/260614_guidelines01.pdf"
+        }
+      ]
+    },
+    {
+      "id": "mhlw-device-cyber",
+      "title": "医療機器のサイバーセキュリティ導入に関する手引書",
+      "publisher": "厚生労働省",
+      "kind": "medical_device_regulation",
+      "page_url": null,
+      "license_note": "公開文書。利用条件は公開元のサイトの利用規約による。",
+      "documents": [
+        {
+          "id": "mhlw-device-cyber-main",
+          "listed_title": "（掲載ページの題名は未確認。検索結果からのURLで、手引書（第2版）を別添とする通知。取り込み後に表題を人が確認する）",
+          "checked_on": "2026-11-06",
+          "version": null,
+          "url": "https://www.mhlw.go.jp/content/11120000/001094636.pdf"
+        }
+      ]
+    },
+    {
+      "id": "ipa-websecurity",
+      "title": "安全なウェブサイトの作り方",
+      "publisher": "独立行政法人情報処理推進機構（IPA）",
+      "kind": "security_standard",
+      "page_url": "https://www.ipa.go.jp/security/vuln/websecurity/about.html",
+      "license_note": "公開文書。利用条件は公開元のサイトの利用規約による。",
+      "documents": [
+        {
+          "id": "ipa-websecurity-7",
+          "listed_title": "安全なウェブサイトの作り方（全115ページ。掲載ページで「新版（改訂第7版）」と表示）",
+          "checked_on": "2026-11-06",
+          "version": null,
+          "url": "https://www.ipa.go.jp/security/vuln/websecurity/ug65p900000196e2-att/000017316.pdf"
+        }
+      ]
+    },
+    {
+      "id": "nist-csf",
+      "title": "NIST Cybersecurity Framework",
+      "publisher": "NIST",
+      "kind": "security_standard",
+      "page_url": null,
+      "license_note": "米国政府の著作物。利用条件は公開元による。",
+      "documents": [
+        {
+          "id": "nist-csf-2",
+          "listed_title": "NIST CSWP 29（PDF。取り込み後に表題を人が確認する）",
+          "checked_on": "2026-11-06",
+          "version": null,
+          "url": "https://nvlpubs.nist.gov/nistpubs/CSWP/NIST.CSWP.29.pdf"
+        }
+      ]
+    },
+    {
+      "id": "owasp-top10",
+      "title": "OWASP Top 10",
+      "publisher": "OWASP Foundation",
+      "kind": "security_standard",
+      "page_url": "https://github.com/OWASP/Top10",
+      "license_note": "CC BY-SA 4.0（リポジトリの LICENSE）。",
+      "documents": [
+        {
+          "id": "owasp-top10-2025-ja",
+          "listed_title": "OWASP Top 10:2025（日本語訳、2025/docs/ja。タグがないためコミットを固定）",
+          "checked_on": "2026-11-06",
+          "version": null,
+          "git": {
+            "repository": "https://github.com/OWASP/Top10",
+            "ref": "3a31f35346c3f4e90f350395124382fa53af2afe",
+            "path": "2025/docs/ja"
+          }
+        }
       ]
     }
   ]

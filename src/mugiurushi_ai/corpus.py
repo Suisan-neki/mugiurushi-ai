@@ -143,23 +143,42 @@ def fetch_url(url: str) -> bytes:
 
 
 def git_markdown(location: GitLocation) -> list[tuple[str, str]]:
-    """指定したタグの指定ディレクトリの Markdown を（ファイル名、本文）で返す。"""
+    """指定したタグまたはコミット（40桁の16進）の、指定ディレクトリの Markdown を（ファイル名、本文）で返す。"""
     with tempfile.TemporaryDirectory() as directory:
         run = lambda *args: subprocess.run(args, check=True, capture_output=True, timeout=600)  # noqa: E731
-        run(
-            "git",
-            "clone",
-            "-q",
-            "--depth",
-            "1",
-            "--branch",
-            location.ref,
-            "--filter=blob:none",
-            "--sparse",
-            location.repository,
-            directory,
-        )
-        run("git", "-C", directory, "sparse-checkout", "set", location.path)
+        if re.fullmatch(r"[0-9a-f]{40}", location.ref):
+            # タグのない取得元は、コミットを指定して固定する。
+            run("git", "init", "-q", directory)
+            run("git", "-C", directory, "remote", "add", "origin", location.repository)
+            run("git", "-C", directory, "sparse-checkout", "set", location.path)
+            run(
+                "git",
+                "-C",
+                directory,
+                "fetch",
+                "-q",
+                "--depth",
+                "1",
+                "--filter=blob:none",
+                "origin",
+                location.ref,
+            )
+            run("git", "-C", directory, "checkout", "-q", "FETCH_HEAD")
+        else:
+            run(
+                "git",
+                "clone",
+                "-q",
+                "--depth",
+                "1",
+                "--branch",
+                location.ref,
+                "--filter=blob:none",
+                "--sparse",
+                location.repository,
+                directory,
+            )
+            run("git", "-C", directory, "sparse-checkout", "set", location.path)
         root = Path(directory) / location.path
         return [(p.name, p.read_text(encoding="utf-8")) for p in sorted(root.glob("*.md"))]
 
