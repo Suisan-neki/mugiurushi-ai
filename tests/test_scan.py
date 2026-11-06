@@ -76,7 +76,9 @@ def test_without_matching_passages_the_model_is_not_called(tmp_path, corpus):
         model,
     )
     assert result["findings"] == [] and result["passages"] == []
-    assert [s["status"] for s in result["sources"]] == ["no_matching_passages"]
+    assert [s["status"] for s in result["sources"]] == ["not_selected"]
+    assert result["sources"][0]["matched_passages"] == 0
+    assert "モデルに渡していない" in result["sources"][0]["status_label"]
     assert model.calls == []
 
 
@@ -183,3 +185,63 @@ def test_each_requested_source_gets_a_server_side_status(corpus):
     assert statuses["synthetic"]["documents"][0]["passages_used"] >= 1
     assert statuses["not-yet"]["status"] == "not_ingested"
     assert statuses["unknown"]["status"] == "not_in_catalog"
+
+
+def test_sources_outside_the_top_passages_are_not_said_to_have_no_matching_text(corpus):
+    """上位の件数から外れた出典を「重なる断片が無い」と言わず、モデルに渡していないとだけ示す。"""
+    result = scan(
+        ScanRequest.model_validate({"system": SYSTEM, "max_passages": 1}),
+        corpus_module.load_snapshots(corpus),
+        corpus_module.load_catalog(corpus),
+        FakeModel({"findings": [finding()], "not_covered": []}),
+    )
+    assert result["sources"][0]["status"] == "used"
+    # 同じ出典の断片を2つにして、上位1件だけを渡す。
+    import json
+
+    catalog_path = corpus / "catalog.json"
+    catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+    catalog["sources"].append(
+        {
+            **catalog["sources"][0],
+            "id": "second",
+            "documents": [
+                {
+                    "id": "second-main",
+                    "listed_title": "二つ目",
+                    "url": None,
+                    "checked_on": "2026-11-05",
+                    "version": None,
+                }
+            ],
+        }
+    )
+    catalog_path.write_text(json.dumps(catalog, ensure_ascii=False), encoding="utf-8")
+    second = corpus / "second.md"
+    second.write_text("アクセスログの取扱い（二つ目の合成文書）", encoding="utf-8")
+    corpus_module.ingest(corpus, "second-main", second)
+    result = scan(
+        ScanRequest.model_validate({"system": SYSTEM, "max_passages": 1}),
+        corpus_module.load_snapshots(corpus),
+        corpus_module.load_catalog(corpus),
+        FakeModel({"findings": [finding(citations=[])], "not_covered": []})
+        if False
+        else _first_passage_model(),
+    )
+    statuses = {s["source_id"]: s for s in result["sources"]}
+    left_out = [s for s in statuses.values() if s["status"] == "not_selected"]
+    assert len(left_out) == 1 and left_out[0]["matched_passages"] >= 1
+    assert "上位1件に選ばれなかった" in left_out[0]["status_label"]
+    assert "重なる断片が無かった" not in left_out[0]["status_label"]
+
+
+class _first_passage_model:
+    """渡された最初の断片を引用する試験用のモデル。"""
+
+    name = "fake"
+
+    def complete(self, *, instructions, payload, schema, name):
+        passage = payload["passages"][0]["id"]
+        return {"findings": [finding(citations=[passage], system_refs=[])], "not_covered": []}, {
+            "response_id": "fake"
+        }

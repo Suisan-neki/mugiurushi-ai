@@ -86,12 +86,14 @@ def scan(
     """`snapshots` は一度に読んだ取り込みの状態。断片と取得記録（SHA-256など）は必ず同じものから取る。"""
     pool = chunks_of(snapshots, request.source_ids)
     query = request.system.summary + "\n" + "\n".join(e.text[:2000] for e in request.system.excerpts)
-    passages = search(pool, query, request.max_passages)
+    # 重なりのあるすべての断片を順位付けし、上位だけをモデルに渡す。出典ごとの状態には全体の件数を使う。
+    matched = search(pool, query, len(pool))
+    passages = matched[: request.max_passages]
     base = {
         "status": "candidate",
         "limits": LIMITS,
         "model": model.name,
-        "sources": source_statuses(request.source_ids, catalog, snapshots, passages),
+        "sources": source_statuses(request.source_ids, catalog, snapshots, passages, matched),
     }
     if not passages:
         return {**base, "findings": [], "not_covered": [], "passages": []}
@@ -160,13 +162,26 @@ def _text(value: Any, limit: int) -> str:
     return value.strip()[:limit]
 
 
+SOURCE_LABELS = {
+    "used": "断片をモデルに渡した",
+    "not_selected": "取り込み済みだが、モデルに渡していない",
+    "not_ingested": "取り込まれていない",
+    "not_in_catalog": "照合の一覧にない",
+}
+
+
 def source_statuses(
-    source_ids: list[str] | None, catalog: Catalog, snapshots: dict[str, Snapshot], passages: list[Chunk]
+    source_ids: list[str] | None,
+    catalog: Catalog,
+    snapshots: dict[str, Snapshot],
+    passages: list[Chunk],
+    matched: list[Chunk],
 ) -> list[dict[str, Any]]:
     """出典ごとに、照合に使えたかをサーバー側で示す。モデルの not_covered には任せない。
 
-    not_in_catalog: 一覧にない。not_ingested: 取り込まれていない。no_matching_passages: 取り込み済みだが、
-    説明と重なる断片が無く、モデルに渡していない。used: 断片をモデルに渡した。
+    not_selected は「モデルに渡していない」だけを意味する。理由は matched_passages（説明と語が重なった断片の数）で
+    区別する: 1以上なら上位の件数に選ばれなかった、0なら重なる断片が無かった。どちらも、その出典に該当する
+    要求が無いことを示さない。
     """
     known = {s.id: s for s in catalog.sources}
     wanted = list(dict.fromkeys(source_ids)) if source_ids is not None else list(known)
@@ -175,15 +190,32 @@ def source_statuses(
     for source_id in wanted:
         source = known.get(source_id)
         if source is None:
-            statuses.append({"source_id": source_id, "status": "not_in_catalog", "documents": []})
+            statuses.append(
+                {
+                    "source_id": source_id,
+                    "status": "not_in_catalog",
+                    "status_label": SOURCE_LABELS["not_in_catalog"],
+                    "documents": [],
+                }
+            )
             continue
         ingested = [d.id for d in source.documents if d.id in snapshots]
-        status = "used" if source_id in used else "no_matching_passages" if ingested else "not_ingested"
+        status = "used" if source_id in used else "not_selected" if ingested else "not_ingested"
+        hits = sum(1 for c in matched if c.source_id == source_id)
+        label = SOURCE_LABELS[status]
+        if status == "not_selected":
+            label += (
+                f"（説明と語が重なる断片は{hits}件あったが、上位{len(passages)}件に選ばれなかった）"
+                if hits
+                else "（説明と語が重なる断片が無かった）"
+            )
         statuses.append(
             {
                 "source_id": source_id,
                 "title": source.title,
                 "status": status,
+                "status_label": label,
+                "matched_passages": hits,
                 "documents": [
                     {
                         "document_id": d.id,

@@ -205,7 +205,11 @@ def ingest(corpus: Path, document_id: str, file: Path | None = None) -> IngestRe
     # 別の版になった状態を見ない。ここまでで失敗した場合は、以前の有効な版がそのまま残る。
     out = corpus / "data" / document.id
     out.mkdir(parents=True, exist_ok=True)
-    temporary = out / f".{SNAPSHOT}.{os.getpid()}.tmp"
+    # 一時ファイルは取り込みごとに別の名前にする（同じプロセスで並行して取り込んでも混ざらない）。
+    with tempfile.NamedTemporaryFile(
+        "w", encoding="utf-8", dir=out, prefix=f".{SNAPSHOT}.", suffix=".tmp", delete=False
+    ) as f:
+        temporary = Path(f.name)
     try:
         temporary.write_text(
             json.dumps({"record": asdict(record), "chunks": [asdict(c) for c in chunks]}, ensure_ascii=False),
