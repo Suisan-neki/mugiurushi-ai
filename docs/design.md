@@ -25,13 +25,17 @@
 | --- | --- | --- |
 | `GET /v1/health` | — | モデルの設定状況、取り込み済みの文書 |
 | `GET /v1/sources` | — | 文書の一覧と取り込みの記録 |
-| `POST /v1/scan` | `system.summary`、`system.excerpts[{ref,text}]`、`source_ids`、`max_passages` | `findings[{status:"candidate", requirement, relevance, citations[{passage_id, source, document, version, page, origin, sha256, fetched_at, excerpt}], system_refs, verification{method, method_label, support, support_label, executable_check, how}, unknowns}]`、`not_covered`、`passages`、`limits` |
+| `POST /v1/scan` | `system.summary`、`system.excerpts[{ref,text}]`、`source_ids`、`max_passages`、`answers[{question,answer}]`（ヒアリングの回答） | `findings[{status:"candidate", requirement, relevance, citations[{passage_id, source_id, document_id, source, document, version, page, origin, sha256, fetched_at, excerpt}], system_refs, verification{method, method_label, support, support_label, executable_check, how}, unknowns, patient_data, priority}]`、`questions[{id,text,why,options}]`（ヒアリングの質問）、`priority_rule`、`not_covered`、`passages`、`limits` |
+| `POST /v1/ask` | `question`、任意の `system` | 断片だけを根拠にした `answer`、`citations`（出典の形は scan と同じ）、`grounded`（根拠の断片があったか） |
+| `POST /v1/plan` | `system`、`findings[{id,requirement,how}]`、`answers` | 試験の案 `tests[{id,name,kind,finding_ids,steps,pass,observation}]`、`not_planned[{finding_id,reason}]`。同じ候補を二つの試験に入れない。観測の種類は判定に使える種類だけ。案は人が了承するまで実行されない |
 | `POST /v1/dialogue/turn` | `system`、`concern`、`messages`、`current_aspects` | `reply`、`questions`、`aspects[{aspect{id,text,origin,observation,trial_checks:[]}, support, rationale, unknowns}]`、`out_of_scope`、`status:"draft"` |
 | `POST /v1/results/explain` | 麦漆の `check_text`・`verdict`・`verification_passed`・`coverage` | 麦漆の判定と状態をそのまま、部分ごとの `explanation`、`next_steps` |
 
 `aspects[].aspect` は麦漆の `set_aspects` にそのまま渡せる形にした。観測の種類の一覧は麦漆の `src/coverage.rs`（main `e3a4201`）から写した（`src/mugiurushi_ai/kinds.py`）。
 
 `sources` は、指定した出典（指定がなければ一覧のすべて）ごとの状態をサーバーが返す：`not_in_catalog`（一覧にない）・`not_ingested`（取り込まれていない）・`not_selected`（取り込み済みだが、モデルに渡していない。`matched_passages` が1以上なら渡す件数に選ばれなかった（出典ごとに最上位の1件を先に選び、残りを全体の順位で埋める。出典の数が `max_passages`（既定20）より多い場合に起きる）、0なら説明と語が重なる断片が無かった。どちらも、その出典に該当する要求が無いことは示さない）・`used`（断片をモデルに渡した）。モデルの `not_covered` には任せない。
+
+優先度（`priority`）はモデルに決めさせず、決まった規則で付ける：該当の見込みが `likely` で患者の情報に関わる（`patient_data`）要求は `high`、どちらか一方なら `medium`、どちらでもなければ `low`。
 
 取り込みは文書ごとに、取得記録（取得先・取得日・SHA-256）と断片を一つのファイル（`corpus/data/<文書ID>/snapshot.json`）にまとめ、一時ファイルから置き換える。照合は一度に読んだスナップショットから断片と取得記録を取るため、照合と同時に新版を取り込んでも、旧版の本文に新版のSHA-256を付けない。取り込みに失敗した場合は、以前の有効な版が残る。
 
