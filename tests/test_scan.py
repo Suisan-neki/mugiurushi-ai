@@ -229,7 +229,7 @@ def test_sources_outside_the_top_passages_are_not_said_to_have_no_matching_text(
     statuses = {s["source_id"]: s for s in result["sources"]}
     left_out = [s for s in statuses.values() if s["status"] == "not_selected"]
     assert len(left_out) == 1 and left_out[0]["matched_passages"] >= 1
-    assert "上位1件に選ばれなかった" in left_out[0]["status_label"]
+    assert "渡した1件に選ばれなかった" in left_out[0]["status_label"]
     assert "重なる断片が無かった" not in left_out[0]["status_label"]
 
 
@@ -243,3 +243,19 @@ class _first_passage_model:
         return {"findings": [finding(citations=[passage], system_refs=[])], "not_covered": []}, {
             "response_id": "fake"
         }
+
+
+def test_every_source_with_matching_text_gets_a_passage_before_the_rest_are_filled(tmp_path):
+    """全体の順位で上位を占める出典があっても、重なる断片のある出典にはそれぞれ1件以上を渡す。"""
+    from mugiurushi_ai.corpus import Chunk
+    from mugiurushi_ai.retrieve import select
+
+    ranked = [Chunk(f"a:p1:{n}", "a", "a-main", "1", "") for n in range(5)] + [
+        Chunk("b:p1:1", "b", "b-main", "1", ""),
+        Chunk("c:p1:1", "c", "c-main", "1", ""),
+    ]
+    assert [c.id for c in select(ranked, 4)] == ["a:p1:0", "a:p1:1", "b:p1:1", "c:p1:1"]
+    assert [c.id for c in select(ranked, 2)] == ["a:p1:0", "b:p1:1"], (
+        "出典が枠より多ければ、最上位の順位が低い出典が外れる"
+    )
+    assert [c.id for c in select(ranked, 10)] == [c.id for c in ranked]

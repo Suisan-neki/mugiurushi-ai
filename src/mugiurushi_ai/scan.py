@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 from .corpus import Catalog, Chunk, Snapshot, chunks_of
 from .kinds import HUMAN_METHODS, JUDGED, OBSERVATION_KINDS, SUPPORT_LABELS, support_of
 from .llm import Model, ModelError, strict_object
-from .retrieve import search
+from .retrieve import search, select
 
 MAX_FINDINGS = 24
 LIMITS = (
@@ -63,7 +63,7 @@ class SystemDescription(BaseModel):
 class ScanRequest(BaseModel):
     system: SystemDescription
     source_ids: list[str] | None = None
-    max_passages: int = Field(default=12, ge=1, le=40)
+    max_passages: int = Field(default=20, ge=1, le=40)
 
 
 class ScanError(ValueError):
@@ -86,9 +86,10 @@ def scan(
     """`snapshots` は一度に読んだ取り込みの状態。断片と取得記録（SHA-256など）は必ず同じものから取る。"""
     pool = chunks_of(snapshots, request.source_ids)
     query = request.system.summary + "\n" + "\n".join(e.text[:2000] for e in request.system.excerpts)
-    # 重なりのあるすべての断片を順位付けし、上位だけをモデルに渡す。出典ごとの状態には全体の件数を使う。
+    # 重なりのあるすべての断片を順位付けし、出典ごとに最低1件を含めて選んだ断片だけをモデルに渡す。
+    # 出典ごとの状態には全体の件数を使う。
     matched = search(pool, query, len(pool))
-    passages = matched[: request.max_passages]
+    passages = select(matched, request.max_passages)
     base = {
         "status": "candidate",
         "limits": LIMITS,
@@ -180,7 +181,7 @@ def source_statuses(
     """出典ごとに、照合に使えたかをサーバー側で示す。モデルの not_covered には任せない。
 
     not_selected は「モデルに渡していない」だけを意味する。理由は matched_passages（説明と語が重なった断片の数）で
-    区別する: 1以上なら上位の件数に選ばれなかった、0なら重なる断片が無かった。どちらも、その出典に該当する
+    区別する: 1以上なら渡す件数に選ばれなかった、0なら重なる断片が無かった。どちらも、その出典に該当する
     要求が無いことを示さない。
     """
     known = {s.id: s for s in catalog.sources}
@@ -205,7 +206,7 @@ def source_statuses(
         label = SOURCE_LABELS[status]
         if status == "not_selected":
             label += (
-                f"（説明と語が重なる断片は{hits}件あったが、上位{len(passages)}件に選ばれなかった）"
+                f"（説明と語が重なる断片は{hits}件あったが、渡した{len(passages)}件に選ばれなかった）"
                 if hits
                 else "（説明と語が重なる断片が無かった）"
             )

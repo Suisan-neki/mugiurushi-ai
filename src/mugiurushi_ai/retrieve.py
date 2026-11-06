@@ -42,3 +42,25 @@ def search(chunks: list[Chunk], query: str, limit: int = 12) -> list[Chunk]:
             scored.append((score / math.sqrt(1 + sum(d.values())), chunk.id, chunk))
     scored.sort(key=lambda x: (-x[0], x[1]))
     return [c for _, _, c in scored[:limit]]
+
+
+def select(matched: list[Chunk], limit: int) -> list[Chunk]:
+    """順位付けした断片から、モデルに渡す断片を選ぶ。
+
+    まず説明と重なる断片がある出典ごとに最上位の1件を（出典の最上位の順に）取り、残りの枠を全体の順位で埋める。
+    全体の順位だけで選ぶと、断片の多い出典や文の短い出典が上位を占め、重なる断片が多い出典でも1件も渡らない
+    ことがある。出典の数が枠より多い場合は、最上位の断片の順位が低い出典が外れる。返す順は全体の順位のまま。
+    """
+    chosen: set[str] = set()
+    covered: set[str] = set()
+    for chunk in matched:
+        if len(chosen) >= limit:
+            break
+        if chunk.source_id not in covered:
+            covered.add(chunk.source_id)
+            chosen.add(chunk.id)
+    for chunk in matched:
+        if len(chosen) >= limit:
+            break
+        chosen.add(chunk.id)
+    return [c for c in matched if c.id in chosen]

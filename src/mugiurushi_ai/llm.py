@@ -41,7 +41,9 @@ class OpenAIModel:
         self, *, instructions: str, payload: dict[str, Any], schema: dict[str, Any], name: str
     ) -> tuple[dict, dict[str, Any]]:
         try:
-            response = self._client.responses.create(
+            # 応答を少しずつ受け取る。一括で待つ要求は、途中の経路によっては応答が30秒を超えると打ち切られ、
+            # HTTP 502 になる（2026-11-06、この開発環境のプロキシ経由で確認）。受け取る内容は一括の場合と同じ。
+            with self._client.responses.stream(
                 model=self.name,
                 instructions=instructions,
                 input=json.dumps(payload, ensure_ascii=False),
@@ -50,7 +52,8 @@ class OpenAIModel:
                 # これは不正利用の監視のためのログなど、ほかの保存を止めるものではない
                 # （https://developers.openai.com/api/docs/guides/your-data）。送る内容は架空のデータに限る。
                 store=False,
-            )
+            ) as stream:
+                response = stream.get_final_response()
         except Exception as error:  # SDKの例外の種類を利用者へそのまま見せない
             raise ModelError(f"モデルの呼び出しに失敗しました: {type(error).__name__}") from error
         try:
