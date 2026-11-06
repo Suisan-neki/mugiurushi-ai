@@ -50,9 +50,8 @@ def test_scan_returns_at_least_one_validated_candidate():
         ScanRequest.model_validate(
             {"system": {"summary": SYSTEM}, "source_ids": ["mhlw-security", "ppc-medical-guidance"]}
         ),
-        corpus_module.load_chunks(CORPUS),
+        corpus_module.load_snapshots(CORPUS),
         corpus_module.load_catalog(CORPUS),
-        corpus_module.records(CORPUS),
         model(),
     )
     keep("scan", result)

@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import os
 import re
 import subprocess
 import tempfile
@@ -20,6 +21,7 @@ import httpx
 from pydantic import BaseModel, Field
 
 CHUNK_CHARS = 1200
+SNAPSHOT = "snapshot.json"
 MAX_DOCUMENT_BYTES = 64 * 1024 * 1024
 
 
@@ -199,14 +201,19 @@ def ingest(corpus: Path, document_id: str, file: Path | None = None) -> IngestRe
         chunks=len(chunks),
         first_lines=" ".join(first.split())[:300],
     )
+    # 取得記録と断片を一つのファイルにまとめ、一時ファイルから置き換える。読む側は、取得記録と断片が
+    # 別の版になった状態を見ない。ここまでで失敗した場合は、以前の有効な版がそのまま残る。
     out = corpus / "data" / document.id
     out.mkdir(parents=True, exist_ok=True)
-    (out / "record.json").write_text(
-        json.dumps(asdict(record), ensure_ascii=False, indent=2), encoding="utf-8"
-    )
-    with (out / "chunks.jsonl").open("w", encoding="utf-8") as f:
-        for chunk in chunks:
-            f.write(json.dumps(asdict(chunk), ensure_ascii=False) + "\n")
+    temporary = out / f".{SNAPSHOT}.{os.getpid()}.tmp"
+    try:
+        temporary.write_text(
+            json.dumps({"record": asdict(record), "chunks": [asdict(c) for c in chunks]}, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        os.replace(temporary, out / SNAPSHOT)
+    finally:
+        temporary.unlink(missing_ok=True)
     return record
 
 
@@ -218,19 +225,36 @@ def _pages_of(name: str, data: bytes) -> list[tuple[str, str]]:
     raise ValueError(f"PDF・Markdown・テキスト以外は取り込めません: {name}")
 
 
-def records(corpus: Path) -> dict[str, IngestRecord]:
+@dataclass(frozen=True)
+class Snapshot:
+    """一つの文書の、ある時点の取得記録と断片。必ず同じファイルから一緒に読む。"""
+
+    record: IngestRecord
+    chunks: tuple[Chunk, ...]
+
+
+def load_snapshots(corpus: Path) -> dict[str, Snapshot]:
+    """取り込み済みの文書を、文書ごとに一度の読み込みで取得記録と断片を一緒に読む。"""
     found = {}
-    for path in sorted((corpus / "data").glob("*/record.json")):
-        record = IngestRecord(**json.loads(path.read_text(encoding="utf-8")))
-        found[record.document_id] = record
+    for path in sorted((corpus / "data").glob(f"*/{SNAPSHOT}")):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        record = IngestRecord(**data["record"])
+        chunks = tuple(Chunk(**c) for c in data["chunks"])
+        if len(chunks) != record.chunks or any(c.document_id != record.document_id for c in chunks):
+            raise ValueError(f"取り込みの記録と断片が一致しません: {path}")
+        found[record.document_id] = Snapshot(record, chunks)
     return found
 
 
+def records(corpus: Path) -> dict[str, IngestRecord]:
+    return {k: s.record for k, s in load_snapshots(corpus).items()}
+
+
+def chunks_of(snapshots: dict[str, Snapshot], source_ids: list[str] | None = None) -> list[Chunk]:
+    return [
+        c for s in snapshots.values() for c in s.chunks if source_ids is None or c.source_id in source_ids
+    ]
+
+
 def load_chunks(corpus: Path, source_ids: list[str] | None = None) -> list[Chunk]:
-    chunks = []
-    for path in sorted((corpus / "data").glob("*/chunks.jsonl")):
-        for line in path.read_text(encoding="utf-8").splitlines():
-            chunk = Chunk(**json.loads(line))
-            if source_ids is None or chunk.source_id in source_ids:
-                chunks.append(chunk)
-    return chunks
+    return chunks_of(load_snapshots(corpus), source_ids)

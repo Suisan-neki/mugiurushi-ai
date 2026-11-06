@@ -31,6 +31,10 @@
 
 `aspects[].aspect` は麦漆の `set_aspects` にそのまま渡せる形にした。観測の種類の一覧は麦漆の `src/coverage.rs`（main `e3a4201`）から写した（`src/mugiurushi_ai/kinds.py`）。
 
+`sources` は、指定した出典（指定がなければ一覧のすべて）ごとの状態をサーバーが返す：`not_in_catalog`（一覧にない）・`not_ingested`（取り込まれていない）・`no_matching_passages`（取り込み済みだが説明と重なる断片が無く、モデルに渡していない）・`used`（断片をモデルに渡した）。モデルの `not_covered` には任せない。
+
+取り込みは文書ごとに、取得記録（取得先・取得日・SHA-256）と断片を一つのファイル（`corpus/data/<文書ID>/snapshot.json`）にまとめ、一時ファイルから置き換える。照合は一度に読んだスナップショットから断片と取得記録を取るため、照合と同時に新版を取り込んでも、旧版の本文に新版のSHA-256を付けない。取り込みに失敗した場合は、以前の有効な版が残る。
+
 `verification.support` は、その確認の方法を麦漆がどこまで扱えるか（`judged` 判定できる・`recorded_only` 記録のみ・`inference` 推定・`unsupported` 麦漆では観測できない・`human` 人による確認）。`executable_check` は `judged` のときだけ真で、それ以外の候補は試験が通っても未確認のまま残る。各応答の `model_call` には、指定したモデル名・APIが返したモデル名・応答のID・トークン数を記録する。
 
 ## 送るデータ

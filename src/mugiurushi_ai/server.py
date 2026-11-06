@@ -110,9 +110,8 @@ def create_app(*, token: str, corpus: Path, model: Model | None, model_note: str
     def scan_endpoint(body: ScanRequest, model: Model = Depends(require_model)):
         catalog = corpus_module.load_catalog(corpus)
         try:
-            return scan(
-                body, corpus_module.load_chunks(corpus), catalog, corpus_module.records(corpus), model
-            )
+            # 断片と取得記録を一度に読んだ同じスナップショットから取る（取り込みと重なっても混ざらない）。
+            return scan(body, corpus_module.load_snapshots(corpus), catalog, model)
         except (ScanError, ModelError) as error:
             raise HTTPException(status_code=502, detail=str(error)) from error
 
