@@ -102,7 +102,7 @@ def turn(request: TurnRequest, model: Model) -> dict[str, Any]:
         "current_aspects": [a.model_dump() for a in request.current_aspects],
         "observation_kinds": kinds_payload(),
     }
-    answer = model.complete(
+    answer, call = model.complete(
         instructions=TURN_INSTRUCTIONS, payload=payload, schema=_TURN_SCHEMA, name="test_scope"
     )
     items = answer.get("aspects")
@@ -136,6 +136,7 @@ def turn(request: TurnRequest, model: Model) -> dict[str, Any]:
     return {
         "status": "draft",
         "model": model.name,
+        "model_call": call,
         "reply": _text(answer.get("reply"), 8000),
         "questions": [_text(q, 1000) for q in answer.get("questions") or []][:10],
         "aspects": aspects,
@@ -173,7 +174,7 @@ class ExplainRequest(BaseModel):
 
 def explain(request: ExplainRequest, model: Model) -> dict[str, Any]:
     payload = request.model_dump()
-    answer = model.complete(
+    answer, call = model.complete(
         instructions=EXPLAIN_INSTRUCTIONS, payload=payload, schema=_EXPLAIN_SCHEMA, name="result_explanation"
     )
     wanted = [a.id for a in request.coverage.aspects]
@@ -186,6 +187,7 @@ def explain(request: ExplainRequest, model: Model) -> dict[str, Any]:
         raise DialogueError("説明のない部分があります")
     return {
         "model": model.name,
+        "model_call": call,
         # 判定・状態は麦漆の値をそのまま返す。AIの文は explanation だけ。
         "verdict": request.verdict,
         "verification_passed": request.verification_passed,

@@ -10,7 +10,7 @@ import hmac
 from dataclasses import asdict
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.responses import JSONResponse
 
 from . import corpus as corpus_module
@@ -21,17 +21,54 @@ from .scan import ScanError, ScanRequest, scan
 MAX_BODY = 1024 * 1024
 
 
+class BodyLimit:
+    """入力の大きさを、実際に受け取ったバイト数で制限する（Content-Length の有無によらない）。
+
+    本文をすべて受け取ってから処理へ渡すため、上限を超えた入力では処理（モデルの呼び出し）に進まない。
+    """
+
+    def __init__(self, app, limit: int = MAX_BODY):
+        self.app = app
+        self.limit = limit
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            return await self.app(scope, receive, send)
+        length = dict(scope["headers"]).get(b"content-length")
+        if length is not None and (not length.isdigit() or int(length) > self.limit):
+            return await self._reject(scope, receive, send)
+        body = b""
+        more = True
+        while more:
+            message = await receive()
+            if message["type"] == "http.disconnect":
+                return
+            body += message.get("body", b"")
+            if len(body) > self.limit:
+                return await self._reject(scope, receive, send)
+            more = message.get("more_body", False)
+        replayed = False
+
+        async def replay():
+            nonlocal replayed
+            if not replayed:
+                replayed = True
+                return {"type": "http.request", "body": body, "more_body": False}
+            return await receive()
+
+        await self.app(scope, replay, send)
+
+    @staticmethod
+    async def _reject(scope, receive, send):
+        await JSONResponse({"error": "入力は1MiBまでです"}, status_code=413)(scope, receive, send)
+
+
 def create_app(*, token: str, corpus: Path, model: Model | None, model_note: str = "") -> FastAPI:
     if len(token) < 16:
         raise ValueError("共有トークンは16文字以上にしてください")
     app = FastAPI(title="mugiurushi-ai", docs_url=None, redoc_url=None, openapi_url=None)
 
-    @app.middleware("http")
-    async def limit_body(request: Request, call_next):
-        length = request.headers.get("content-length")
-        if length is not None and (not length.isdigit() or int(length) > MAX_BODY):
-            return JSONResponse({"error": "入力は1MiBまでです"}, status_code=413)
-        return await call_next(request)
+    app.add_middleware(BodyLimit)
 
     def authorized(x_mugiurushi_ai_token: str = Header(default="")) -> None:
         if not hmac.compare_digest(x_mugiurushi_ai_token.encode(), token.encode()):

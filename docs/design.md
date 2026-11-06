@@ -25,11 +25,20 @@
 | --- | --- | --- |
 | `GET /v1/health` | — | モデルの設定状況、取り込み済みの文書 |
 | `GET /v1/sources` | — | 文書の一覧と取り込みの記録 |
-| `POST /v1/scan` | `system.summary`、`system.excerpts[{ref,text}]`、`source_ids`、`max_passages` | `findings[{status:"candidate", requirement, relevance, citations[{passage_id, source, document, version, page, origin, sha256, fetched_at, excerpt}], system_refs, verification{method, observable_by_mugiurushi, how}, unknowns}]`、`not_covered`、`passages`、`limits` |
+| `POST /v1/scan` | `system.summary`、`system.excerpts[{ref,text}]`、`source_ids`、`max_passages` | `findings[{status:"candidate", requirement, relevance, citations[{passage_id, source, document, version, page, origin, sha256, fetched_at, excerpt}], system_refs, verification{method, method_label, support, support_label, executable_check, how}, unknowns}]`、`not_covered`、`passages`、`limits` |
 | `POST /v1/dialogue/turn` | `system`、`concern`、`messages`、`current_aspects` | `reply`、`questions`、`aspects[{aspect{id,text,origin,observation,trial_checks:[]}, support, rationale, unknowns}]`、`out_of_scope`、`status:"draft"` |
 | `POST /v1/results/explain` | 麦漆の `check_text`・`verdict`・`verification_passed`・`coverage` | 麦漆の判定と状態をそのまま、部分ごとの `explanation`、`next_steps` |
 
 `aspects[].aspect` は麦漆の `set_aspects` にそのまま渡せる形にした。観測の種類の一覧は麦漆の `src/coverage.rs`（main `e3a4201`）から写した（`src/mugiurushi_ai/kinds.py`）。
+
+`verification.support` は、その確認の方法を麦漆がどこまで扱えるか（`judged` 判定できる・`recorded_only` 記録のみ・`inference` 推定・`unsupported` 麦漆では観測できない・`human` 人による確認）。`executable_check` は `judged` のときだけ真で、それ以外の候補は試験が通っても未確認のまま残る。各応答の `model_call` には、指定したモデル名・APIが返したモデル名・応答のID・トークン数を記録する。
+
+## 送るデータ
+
+- OpenAIへ送るのは、公開文書の断片、開発者が書いたシステムの説明・コードの抜粋、麦漆の結果のうち確認項目の文と部分ごとの状態・説明だけ。
+- 接続の試験とデモは架空のデータだけで行う。実患者の情報・生のログ・認証情報は送らない。麦漆から呼ぶときも、実行記録の生ログや画面写真、試験用の認証情報は送らない。
+- 応答は `store=False` で送る。これは Responses の応答を OpenAI 側に保存させない設定で、不正利用の監視のためのログなど、ほかの保存を止めるものではない（[OpenAIのデータの扱い](https://developers.openai.com/api/docs/guides/your-data)）。
+- モデルの接続先・APIキー・共有トークンは運営者がサーバー側で設定する。麦漆の画面から入力させない。
 
 ## 麦漆への組み込み（次の作業）
 

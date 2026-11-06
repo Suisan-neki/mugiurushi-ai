@@ -44,7 +44,7 @@ def test_citations_are_filled_from_the_ingest_record_not_by_the_model(corpus):
     record = corpus_module.records(corpus)["synthetic-main"]
     assert citation["sha256"] == record.sha256 and citation["page"] == "1"
     assert citation["version"] is None, "版は人が確認するまで空"
-    assert f["verification"]["observable_by_mugiurushi"] is True
+    assert f["verification"]["executable_check"] is True and f["verification"]["support"] == "judged"
     # モデルに渡したのは断片とシステムの説明だけで、命令は資料として扱うよう指示している。
     call = model.calls[0]
     assert [p["id"] for p in call["payload"]["passages"]] == ["synthetic-main:p1:1"]
@@ -81,12 +81,27 @@ def test_without_matching_passages_the_model_is_not_called(tmp_path, corpus):
     assert model.calls == []
 
 
-def test_human_methods_are_marked_as_not_observable_by_mugiurushi(corpus):
+@pytest.mark.parametrize(
+    "method, support",
+    [
+        ("container_log", "judged"),
+        ("database_rows", "judged"),
+        ("traffic_summary", "recorded_only"),
+        ("code_inspection", "inference"),
+        ("network_payload", "unsupported"),
+        ("distributed_trace", "unsupported"),
+        ("external_destination", "unsupported"),
+        ("production_environment", "unsupported"),
+        ("document_review", "human"),
+        ("code_review", "human"),
+    ],
+)
+def test_only_judged_methods_are_marked_as_checkable_by_a_mugiurushi_trial(corpus, method, support):
     result, _ = run(
-        corpus,
-        {
-            "findings": [finding(verification={"method": "document_review", "how": "手順書"})],
-            "not_covered": [],
-        },
+        corpus, {"findings": [finding(verification={"method": method, "how": "x"})], "not_covered": []}
     )
-    assert result["findings"][0]["verification"]["observable_by_mugiurushi"] is False
+    v = result["findings"][0]["verification"]
+    assert v["support"] == support
+    assert v["executable_check"] is (support == "judged")
+    if support == "unsupported":
+        assert "観測できない" in v["support_label"]

@@ -31,13 +31,36 @@ def test_without_a_model_the_service_says_so_instead_of_answering(corpus):
     assert r.status_code == 503 and "未設定" in r.json()["detail"]
 
 
-def test_large_bodies_are_rejected(corpus):
-    r = client(corpus).post(
-        "/v1/scan",
+TURN_ANSWER = {"reply": "r", "questions": [], "aspects": [], "out_of_scope": []}
+# 中身は有効なJSONのまま、空白で1MiBを超える入力。
+LARGE = b'{"system": "s", "concern": "c"' + b" " * (1024 * 1024 + 10) + b"}"
+
+
+@pytest.mark.parametrize("chunked", [False, True])
+def test_large_bodies_are_rejected_before_the_model_is_called(corpus, chunked):
+    model = FakeModel(TURN_ANSWER)
+    content = (LARGE[i : i + 65536] for i in range(0, len(LARGE), 65536)) if chunked else LARGE
+    r = client(corpus, model).post(
+        "/v1/dialogue/turn",
         headers={"X-Mugiurushi-AI-Token": TOKEN, "Content-Type": "application/json"},
-        content=b"{" + b" " * (1024 * 1024) + b"}",
+        content=content,
     )
+    assert ("content-length" in {k.lower() for k in r.request.headers}) is not chunked
     assert r.status_code == 413
+    assert model.calls == [], "上限を超えた入力でモデルを呼ばない"
+
+
+@pytest.mark.parametrize("chunked", [False, True])
+def test_small_bodies_are_processed_with_or_without_content_length(corpus, chunked):
+    model = FakeModel(TURN_ANSWER)
+    body = b'{"system": "s", "concern": "c"}'
+    r = client(corpus, model).post(
+        "/v1/dialogue/turn",
+        headers={"X-Mugiurushi-AI-Token": TOKEN, "Content-Type": "application/json"},
+        content=iter([body[:10], body[10:]]) if chunked else body,
+    )
+    assert r.status_code == 200, r.text
+    assert len(model.calls) == 1
 
 
 def test_invalid_model_output_is_a_bad_gateway_not_a_result(corpus):

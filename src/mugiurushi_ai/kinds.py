@@ -36,6 +36,23 @@ OBSERVATION_KINDS: dict[str, str] = {
     "production_environment": UNSUPPORTED,
 }
 
+HUMAN = "human"
+
+# 麦漆がその方法でどこまで扱えるか。executable は、麦漆の試験で観測して判定できる場合だけ真。
+SUPPORT_LABELS = {
+    JUDGED: "麦漆の試験で観測し、判定できる",
+    RECORDED_ONLY: "麦漆の記録に残るが、判定には使えない",
+    INFERENCE: "推定（実行の観測ではない）",
+    UNSUPPORTED: "麦漆では観測できない",
+    HUMAN: "人による確認（麦漆の判定ではない）",
+}
+
+
+def support_of(method: str) -> str:
+    """確認の方法が、麦漆でどこまで扱えるか。人による方法は human。"""
+    return OBSERVATION_KINDS.get(method, HUMAN)
+
+
 # 照合（scan）で、麦漆の観測では確かめられない確認の方法。
 HUMAN_METHODS = {
     "document_review": "文書・手順書の確認（人）",

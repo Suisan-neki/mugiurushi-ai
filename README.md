@@ -40,7 +40,9 @@ OPENAI_API_KEY=<キー> \
 uv run mugiurushi-ai serve
 ```
 
-プロキシが `api.openai.com` への認証を付ける環境（Claude Code の Network secret など）では、`OPENAI_API_KEY` の代わりに `MUGIURUSHI_AI_AUTH=proxy` を指定する。応答はOpenAI側に保存させない（`store=False`）。
+プロキシが `api.openai.com` への認証を付ける環境（Claude Code の Network secret など）では、`OPENAI_API_KEY` の代わりに `MUGIURUSHI_AI_AUTH=proxy` を指定する。
+
+送るのは公開文書の断片と、架空のデータ・開発者が書いた説明だけで、実患者の情報・生のログ・認証情報は送らない。`store=False` は Responses の応答を保存させない設定で、不正利用の監視のためのログなどほかの保存は止めない（[docs/design.md](docs/design.md)「送るデータ」）。
 
 ## 確認
 
