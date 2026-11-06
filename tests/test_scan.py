@@ -224,9 +224,7 @@ def test_sources_outside_the_top_passages_are_not_said_to_have_no_matching_text(
         ScanRequest.model_validate({"system": SYSTEM, "max_passages": 1}),
         corpus_module.load_snapshots(corpus),
         corpus_module.load_catalog(corpus),
-        FakeModel({"findings": [finding(citations=[])], "not_covered": []})
-        if False
-        else _first_passage_model(),
+        _first_passage_model(),
     )
     statuses = {s["source_id"]: s for s in result["sources"]}
     left_out = [s for s in statuses.values() if s["status"] == "not_selected"]

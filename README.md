@@ -28,6 +28,19 @@
 uv sync
 uv run mugiurushi-ai sources
 uv run mugiurushi-ai ingest --all
+```
+
+取り込んだ文書は `corpus/data/<文書ID>/snapshot.json`（取得記録と断片を一つにまとめたもの）に保存する。以前の形式（`record.json`・`chunks.jsonl`）は読まないため、以前に取り込んだ環境では取り込み直す。
+
+```sh
+rm -f corpus/data/*/record.json corpus/data/*/chunks.jsonl
+uv run mugiurushi-ai ingest --all
+uv run mugiurushi-ai sources   # 「未取り込み」の文書が残っていないか確かめる
+```
+
+この開発環境から取得できない文書（2026-11-05時点では提供事業者向けガイドラインの経済産業省のPDF）は、運営者が公開元から取得したファイルを指定して取り込む。取り込み時のSHA-256は、指定したファイルの内容から記録する。
+
+```sh
 uv run mugiurushi-ai ingest provider-security-main --file ./01gl_20250328.pdf
 ```
 
