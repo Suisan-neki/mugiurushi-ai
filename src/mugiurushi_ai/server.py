@@ -15,6 +15,7 @@ from fastapi.responses import JSONResponse
 
 from . import corpus as corpus_module
 from .dialogue import DialogueError, ExplainRequest, TurnRequest, explain, turn
+from .flow import AskRequest, FlowError, PlanRequest, ask, plan
 from .llm import Model, ModelError
 from .scan import ScanError, ScanRequest, scan
 
@@ -113,6 +114,20 @@ def create_app(*, token: str, corpus: Path, model: Model | None, model_note: str
             # 断片と取得記録を一度に読んだ同じスナップショットから取る（取り込みと重なっても混ざらない）。
             return scan(body, corpus_module.load_snapshots(corpus), catalog, model)
         except (ScanError, ModelError) as error:
+            raise HTTPException(status_code=502, detail=str(error)) from error
+
+    @app.post("/v1/ask", dependencies=[Depends(authorized)])
+    def ask_endpoint(body: AskRequest, model: Model = Depends(require_model)):
+        try:
+            return ask(body, corpus_module.load_snapshots(corpus), corpus_module.load_catalog(corpus), model)
+        except (FlowError, ModelError) as error:
+            raise HTTPException(status_code=502, detail=str(error)) from error
+
+    @app.post("/v1/plan", dependencies=[Depends(authorized)])
+    def plan_endpoint(body: PlanRequest, model: Model = Depends(require_model)):
+        try:
+            return plan(body, model)
+        except (FlowError, ModelError) as error:
             raise HTTPException(status_code=502, detail=str(error)) from error
 
     @app.post("/v1/dialogue/turn", dependencies=[Depends(authorized)])
