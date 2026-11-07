@@ -122,3 +122,59 @@ def test_plan_groups_findings_and_rejects_unknown_or_duplicated_ones():
                 }
             ),
         )
+
+
+def _plan(findings, answer):
+    return plan(
+        PlanRequest.model_validate({"system": SYSTEM, "findings": finding_ids(*findings)}), FakeModel(answer)
+    )
+
+
+_TEST = {
+    "name": "別の職員での操作",
+    "kind": "cli",
+    "finding_ids": ["f1"],
+    "steps": ["職員Aで追加し、職員Bで一覧を読む"],
+    "pass": ["職員Bの一覧に出ない"],
+    "observation": "readback_output",
+}
+
+
+def test_plan_returns_every_finding_as_a_test_not_planned_or_unclassified():
+    # 正常：すべての候補が試験か試験にしなかった候補のどちらかに入る。
+    full = _plan(
+        ["f1", "f2"], {"tests": [_TEST], "not_planned": [{"finding_id": "f2", "reason": "本番の構成による"}]}
+    )
+    assert [t["finding_ids"] for t in full["tests"]] == [["f1"]]
+    assert full["not_planned"] == [{"finding_id": "f2", "reason": "本番の構成による"}]
+    assert full["unclassified"] == []
+    # 欠落：どちらにも入らなかった候補は、理由を補わずに未分類として返す（黙って消さない）。
+    missing = _plan(["f1", "f2", "f3"], {"tests": [_TEST], "not_planned": []})
+    assert missing["unclassified"] == ["f2", "f3"]
+    assert missing["not_planned"] == []
+    # 空の案：試験も試験にしなかった候補も無ければ、すべて未分類。
+    empty = _plan(["f1", "f2"], {"tests": [], "not_planned": []})
+    assert (empty["tests"], empty["not_planned"], empty["unclassified"]) == ([], [], ["f1", "f2"])
+
+
+@pytest.mark.parametrize(
+    "answer",
+    [
+        # 試験にしなかった候補に、渡していない候補
+        {"tests": [_TEST], "not_planned": [{"finding_id": "f9", "reason": "x"}]},
+        # 同じ候補を試験と、試験にしなかった候補の両方に入れた
+        {"tests": [_TEST], "not_planned": [{"finding_id": "f1", "reason": "x"}]},
+        # 試験にしなかった候補に、同じ候補を重ねて入れた
+        {
+            "tests": [],
+            "not_planned": [{"finding_id": "f2", "reason": "x"}, {"finding_id": "f2", "reason": "y"}],
+        },
+        # 一つの試験に、同じ候補を重ねて入れた
+        {"tests": [{**_TEST, "finding_ids": ["f1", "f1"]}], "not_planned": []},
+        # 二つの試験に同じ候補
+        {"tests": [_TEST, {**_TEST, "name": "別"}], "not_planned": []},
+    ],
+)
+def test_plan_rejects_unknown_or_duplicated_finding_ids(answer):
+    with pytest.raises(FlowError):
+        _plan(["f1", "f2"], answer)

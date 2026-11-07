@@ -27,7 +27,7 @@
 | `GET /v1/sources` | — | 文書の一覧と取り込みの記録 |
 | `POST /v1/scan` | `system.summary`、`system.excerpts[{ref,text}]`、`source_ids`、`max_passages`、`answers[{question,answer}]`（ヒアリングの回答） | `findings[{status:"candidate", requirement, relevance, citations[{passage_id, source_id, document_id, source, document, version, page, origin, sha256, fetched_at, excerpt}], system_refs, verification{method, method_label, support, support_label, executable_check, how}, unknowns, patient_data, priority}]`、`questions[{id,text,why,options}]`（ヒアリングの質問）、`priority_rule`、`not_covered`、`passages`、`limits` |
 | `POST /v1/ask` | `question`、任意の `system` | 断片だけを根拠にした `answer`、`citations`（出典の形は scan と同じ）、`grounded`（根拠の断片があったか） |
-| `POST /v1/plan` | `system`、`findings[{id,requirement,how}]`、`answers` | 試験の案 `tests[{id,name,kind,finding_ids,steps,pass,observation}]`、`not_planned[{finding_id,reason}]`。同じ候補を二つの試験に入れない。観測の種類は判定に使える種類だけ。案は人が了承するまで実行されない |
+| `POST /v1/plan` | `system`、`findings[{id,requirement,how}]`、`answers` | 試験の案 `tests[{id,name,kind,finding_ids,steps,pass,observation}]`、`not_planned[{finding_id,reason}]`、`unclassified[finding_id]`。渡した候補はそれぞれ、試験・試験にしなかった候補・未分類（AIの案に含まれなかった。理由は補わない）のちょうど一つに入る。渡していない候補、同じ候補の重複（一つの試験の中、二つの試験、試験と試験にしなかった候補の両方、試験にしなかった候補の中）を含む応答は返さない。観測の種類は判定に使える種類だけ。案は人が了承するまで実行されない |
 | `POST /v1/dialogue/turn` | `system`、`concern`、`messages`、`current_aspects` | `reply`、`questions`、`aspects[{aspect{id,text,origin,observation,trial_checks:[]}, support, rationale, unknowns}]`、`out_of_scope`、`status:"draft"` |
 | `POST /v1/results/explain` | 麦漆の `check_text`・`verdict`・`verification_passed`・`coverage` | 麦漆の判定と状態をそのまま、部分ごとの `explanation`、`next_steps` |
 
